@@ -747,6 +747,7 @@ impl WordApp {
             .unwrap_or(false);
         if arrived && let Some((id, _)) = self.canvas.widget_id {
             self.canvas.focused = ctx.memory(|m| m.has_focus(id));
+            self.canvas.owns_keyboard = self.canvas.focused;
         }
     }
 
