@@ -33,6 +33,7 @@ impl WordApp {
             if let (Some(ctx), Some((id, _))) = (&self.ctx, self.canvas.widget_id) {
                 // Canvas keys run before painting updates last frame's native focus flag.
                 self.canvas.focused = ctx.memory(|m| m.has_focus(id));
+                self.canvas.owns_keyboard = self.canvas.focused;
             }
         }
         raw.events.extend(events);

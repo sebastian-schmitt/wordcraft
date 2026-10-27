@@ -2152,6 +2152,24 @@ fn control_keyboard_preserves_native_focus_and_document_protection() {
     assert!(!a.canvas.focused);
 }
 
+/// Control text queued after another widget took the keyboard from the page stays out of the
+/// document: the root hook drops the page's keyboard ownership together with its focus.
+#[test]
+fn control_text_after_the_page_lost_the_keyboard_stays_out() {
+    let ctx = egui::Context::default();
+    let mut a = app();
+    a.run("document.setText", json!({"text": "Seed"})).unwrap();
+    for _ in 0..4 {
+        control_frame(&mut a, &ctx, true);
+    }
+    assert!(a.canvas.owns_keyboard);
+    ctx.memory_mut(|m| m.request_focus(egui::Id::unique("dialog field")));
+    control_input(&mut a, &ctx, "ui.text", json!({"text": "Stray"}));
+    control_frame(&mut a, &ctx, true);
+    assert!(!a.canvas.focused && !a.canvas.owns_keyboard);
+    assert_eq!(body_text(&a), "Seed");
+}
+
 /// #2103: double-clicking the page number in a later page's footer opens the footer there;
 /// the view stays on that page instead of jumping to the top of the document.
 #[test]
