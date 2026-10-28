@@ -3969,6 +3969,10 @@ fn the_page_takes_input_method_text_while_its_window_is_inactive() {
     h.step();
     assert!(!h.state().canvas.focused && h.state().canvas.owns_keyboard(&h.ctx));
     assert!(h.output().platform_output.ime.is_some(), "the picker is still placed at the caret");
+    h.event(egui::Event::Ime(egui::ImeEvent::Preedit { text: "に".into(), active_range_chars: None }));
+    h.step();
+    h.step();
+    assert_eq!(h.state().canvas.ime_preedit, "に", "a composition survives the inactive window");
     h.event(egui::Event::Ime(egui::ImeEvent::Commit("🚀".into())));
     h.step();
     assert!(h.state().session.doc.plain_text(wordcraft_doc::StoryRef::Body).contains('🚀'));
