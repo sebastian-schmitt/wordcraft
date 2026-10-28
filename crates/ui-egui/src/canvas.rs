@@ -286,7 +286,12 @@ impl CanvasState {
     /// the keyboard and types the chosen emoji into it. Read from egui's memory each time, so a
     /// dialog that takes the keyboard takes it from the page at once.
     pub(crate) fn owns_keyboard(&self, ctx: &egui::Context) -> bool {
-        self.focused || self.widget_id.is_some_and(|(id, _)| ctx.memory(|m| m.has_focus(id)))
+        self.widget_id.map_or(self.focused, |(id, _)| self.owns_keyboard_as(ctx, id))
+    }
+
+    /// [`Self::owns_keyboard`] for the page's widget `id`, while the page is being drawn.
+    fn owns_keyboard_as(&self, ctx: &egui::Context, id: egui::Id) -> bool {
+        self.focused || ctx.memory(|m| m.has_focus(id))
     }
 
     /// Another document is shown in the window: everything about the page that was shown (drags,
@@ -1040,9 +1045,7 @@ pub fn show(app: &mut WordApp, ui: &mut Ui) {
         }
         // Caret.
         let focused = resp.has_focus() || app.canvas.focused;
-        // The editor stays the input method's target while its window is inactive: the Emoji &
-        // Symbols picker takes the keyboard to search, then types the chosen emoji into it.
-        let owns_keyboard = focused || ui.memory(|m| m.has_focus(resp.id));
+        let owns_keyboard = app.canvas.owns_keyboard_as(ui.ctx(), resp.id);
         // After an automatic change the web's text agent starts afresh
         // (`keys::note_automatic_change`) — only there, because on X11 an interrupt recreates the
         // input context and fcitx drops later keys (#1169). A body replacement interrupts on every
