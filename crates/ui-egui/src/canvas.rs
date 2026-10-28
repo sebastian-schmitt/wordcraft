@@ -281,17 +281,17 @@ pub struct CanvasState {
 type TablePreviewKey = ((usize, usize, u64, u64, wordcraft_engine::Selection), std::sync::Arc<DocLayout>);
 
 impl CanvasState {
-    /// The page takes keys and input method text: it is focused, or it still has the keyboard
-    /// within its window while the window is inactive, as when the Emoji & Symbols picker holds
-    /// the keyboard and types the chosen emoji into it. Read from egui's memory each time, so a
-    /// dialog that takes the keyboard takes it from the page at once.
+    /// The page takes keys and input method text: it has the keyboard within its window, active
+    /// or not, as when the Emoji & Symbols picker holds the keyboard and types the chosen emoji
+    /// into it. Read from egui's memory each time, so a dialog that takes the keyboard takes it
+    /// from the page at once; with no widget focused, the page's own claim (`focused`) decides.
     pub(crate) fn owns_keyboard(&self, ctx: &egui::Context) -> bool {
         self.widget_id.map_or(self.focused, |(id, _)| self.owns_keyboard_as(ctx, id))
     }
 
     /// [`Self::owns_keyboard`] for the page's widget `id`, while the page is being drawn.
     fn owns_keyboard_as(&self, ctx: &egui::Context, id: egui::Id) -> bool {
-        self.focused || ctx.memory(|m| m.has_focus(id))
+        ctx.memory(|m| m.focused()).map_or(self.focused, |focused| focused == id)
     }
 
     /// Another document is shown in the window: everything about the page that was shown (drags,
