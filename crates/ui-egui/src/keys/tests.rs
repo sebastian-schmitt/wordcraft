@@ -1213,7 +1213,9 @@ fn observe_ime_keeps_the_editor_while_its_window_is_inactive() {
     a.canvas.ime_preedit = "に".into();
     a.canvas.ime_preedit_range = Some(0..1);
     a.canvas.focused = false;
-    a.canvas.owns_keyboard = true;
+    let page = egui::Id::unique("page");
+    a.canvas.widget_id = Some((page, 0));
+    ctx.memory_mut(|m| m.request_focus(page));
     let r = egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(10.0, 10.0));
     observe_ime(&mut a, &ctx, Some((r, r)), false);
     assert_eq!(a.canvas.ime_preedit, "に");
